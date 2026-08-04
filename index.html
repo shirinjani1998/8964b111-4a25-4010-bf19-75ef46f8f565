@@ -138,6 +138,14 @@
   .primary-btn:not(:disabled):hover{ transform:translateY(-2px); }
   .primary-btn:not(:disabled):active{ transform:scale(0.96); }
 
+  .ghost-btn{
+    margin-top:2px; border:2px solid #ffdccb; border-radius:999px; padding:10px 24px;
+    font-family:'Quicksand'; font-weight:700; font-size:0.85rem; color:#b96a5a;
+    background:#fffdfb; cursor:pointer; transition:transform .15s, background .2s;
+  }
+  .ghost-btn:hover{ background:#fff1e8; transform:translateY(-1px); }
+  .ghost-btn:active{ transform:scale(0.96); }
+
   /* page 4 */
   .celebrate{ font-size:2.6rem; margin-top:2px; }
   .final-msg{
@@ -222,6 +230,8 @@
         <div class="celebrate">🎉💕✨</div>
         <p class="final-msg" id="finalMsg">Yeah, it's a date!</p>
         <div class="final-sub" id="finalSub"></div>
+        <button class="ghost-btn" id="copyBtn">Copy my answer 📋</button>
+        <button class="ghost-btn" id="restartBtn">Start over 🔄</button>
       </div>
 
     </div>
@@ -254,23 +264,48 @@
   const noTexts = ["No", "are you sure? 🥹", "really sure? 🥺", "you can't catch me 😜", "yes is right there 👉", "come on... 💕"];
   let noIdx = 0;
   const btnRow = document.querySelector('.btn-row');
+  const NO_DEFAULT = { left:'72%', top:'50%' };
 
-  function dodge(){
+  let lastPointer = { x:-9999, y:-9999 };
+  document.addEventListener('mousemove', (e)=>{ lastPointer = { x:e.clientX, y:e.clientY }; });
+
+  function dodge(e){
     noIdx = (noIdx + 1) % noTexts.length;
     if(noIdx === 0) noIdx = 1;
     noBtn.textContent = noTexts[noIdx];
+
     const rowRect = btnRow.getBoundingClientRect();
     const btnRect = noBtn.getBoundingClientRect();
     const padX = (btnRect.width/2)/rowRect.width*100 + 4;
     const padY = (btnRect.height/2)/rowRect.height*100 + 6;
-    const newLeft = Math.random()*(100-2*padX) + padX;
-    const newTop = Math.random()*(100-2*padY) + padY;
+
+    const pointerX = (e && e.clientX != null) ? e.clientX : lastPointer.x;
+    const pointerY = (e && e.clientY != null) ? e.clientY : lastPointer.y;
+    const pointerRelX = pointerX - rowRect.left;
+    const pointerRelY = pointerY - rowRect.top;
+    const minDistPx = Math.min(rowRect.width, rowRect.height) * 0.7;
+
+    let newLeft, newTop, candXpx, candYpx, tries = 0, dist = 0;
+    do {
+      newLeft = Math.random()*(100-2*padX) + padX;
+      newTop = Math.random()*(100-2*padY) + padY;
+      candXpx = (newLeft/100) * rowRect.width;
+      candYpx = (newTop/100) * rowRect.height;
+      dist = Math.hypot(candXpx - pointerRelX, candYpx - pointerRelY);
+      tries++;
+    } while (dist < minDistPx && tries < 25);
+
+    if (dist < minDistPx) {
+      newLeft = Math.min(100-padX, Math.max(padX, 100 - (pointerRelX/rowRect.width*100)));
+      newTop = Math.min(100-padY, Math.max(padY, 100 - (pointerRelY/rowRect.height*100)));
+    }
+
     noBtn.style.left = newLeft + '%';
     noBtn.style.top = newTop + '%';
     noBtn.style.transform = `translate(-50%,-50%) rotate(${(Math.random()*16-8).toFixed(1)}deg)`;
   }
-  noBtn.addEventListener('mouseenter', dodge);
-  noBtn.addEventListener('touchstart', (e)=>{ e.preventDefault(); dodge(); }, {passive:false});
+  noBtn.addEventListener('mouseenter', (e)=> dodge(e));
+  noBtn.addEventListener('touchstart', (e)=>{ e.preventDefault(); dodge(e.touches[0]); }, {passive:false});
   noBtn.addEventListener('click', (e)=> e.preventDefault());
 
   yesBtn.addEventListener('click', ()=> goTo(1));
@@ -362,6 +397,37 @@
   function stopConfetti(){
     if(confettiTimer){ clearInterval(confettiTimer); confettiTimer = null; }
   }
+
+  /* ---------- copy answer + start over ---------- */
+  const copyBtn = document.getElementById('copyBtn');
+  copyBtn.addEventListener('click', async ()=>{
+    const text = finalSub.textContent;
+    try{
+      await navigator.clipboard.writeText(text);
+    }catch(err){
+      window.prompt('Copy this:', text);
+    }
+    const original = copyBtn.textContent;
+    copyBtn.textContent = 'Copied! 💕';
+    setTimeout(()=> copyBtn.textContent = original, 1500);
+  });
+
+  const restartBtn = document.getElementById('restartBtn');
+  restartBtn.addEventListener('click', ()=>{
+    dateInput.value = '';
+    timeInput.value = '';
+    toPage3.disabled = true;
+    chips.forEach(c=>c.classList.remove('selected'));
+    chosenActivity = null;
+    toPage4.disabled = true;
+    noBtn.textContent = 'No';
+    noBtn.style.left = NO_DEFAULT.left;
+    noBtn.style.top = NO_DEFAULT.top;
+    noBtn.style.transform = 'translate(-50%,-50%)';
+    noIdx = 0;
+    stopConfetti();
+    goTo(0);
+  });
 </script>
 </body>
 </html>
