@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>will you go on a date with me? 👀💕</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --peach-1:#ffe9dc;
+    --peach-2:#ffd3c2;
+    --cream:#fffaf5;
+    --pink:#ff8fa8;
+    --pink-deep:#e8607f;
+    --circle:#ffe1cf;
+    --circle-active:#ffb199;
+    --shadow: 0 10px 30px rgba(232,96,127,0.18);
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%; overflow:hidden;
+    background:
+      radial-gradient(circle at 15% 10%, #fff2e8 0%, transparent 55%),
+      radial-gradient(circle at 90% 85%, #ffd9cb 0%, transparent 50%),
+      linear-gradient(160deg, var(--peach-1), var(--peach-2));
+    font-family:'Quicksand', sans-serif;
+  }
+  .stage{
+    height:100dvh; width:100vw;
+    display:flex; align-items:center; justify-content:center;
+    padding:12px;
+  }
+  .card{
+    position:relative;
+    width:min(400px, 94vw);
+    max-height:94dvh;
+    background:var(--cream);
+    border:2px solid #ffd9c6;
+    border-radius:32px;
+    box-shadow:var(--shadow);
+    padding:20px 22px 18px;
+    display:flex; flex-direction:column; align-items:center;
+    gap:6px;
+    overflow:hidden;
+  }
+  .card::before{
+    content:""; position:absolute; top:-40px; right:-40px;
+    width:110px; height:110px; background:#ffd0e0; border-radius:50%;
+    opacity:0.5; filter:blur(2px);
+  }
+  .card::after{
+    content:""; position:absolute; bottom:-45px; left:-35px;
+    width:120px; height:120px; background:#ffcdb8; border-radius:50%;
+    opacity:0.5; filter:blur(2px);
+  }
+
+  .dots{ display:flex; gap:7px; z-index:2; margin-bottom:4px; }
+  .dot{ width:7px; height:7px; border-radius:50%; background:#ffd9c6; transition:background .3s, transform .3s; }
+  .dot.active{ background:var(--pink-deep); transform:scale(1.25); }
+
+  .back{
+    position:absolute; top:16px; left:18px; z-index:3;
+    background:none; border:none; font-family:'Quicksand'; font-weight:700;
+    color:#d68f7f; font-size:0.85rem; cursor:pointer; opacity:0.75;
+    display:none;
+  }
+  .back.show{ display:block; }
+
+  .page{ display:none; flex-direction:column; align-items:center; gap:14px; width:100%; z-index:1; }
+  .page.active{ display:flex; }
+
+  h1{
+    font-family:'Caveat', cursive; font-weight:700;
+    font-size:clamp(1.55rem, 6vw, 2.1rem);
+    color:var(--pink-deep); margin:8px 0 0; text-align:center; line-height:1.15;
+  }
+  .sub{
+    font-size:0.82rem; color:#c98a7a; text-align:center; margin-top:-8px;
+  }
+
+  /* page 1 */
+  .btn-row{ position:relative; width:100%; height:120px; margin-top:4px; }
+  .choice-btn{
+    position:absolute; top:50%; transform:translate(-50%,-50%);
+    border:none; border-radius:999px; padding:13px 26px;
+    font-family:'Quicksand'; font-weight:700; font-size:1rem;
+    cursor:pointer; white-space:nowrap;
+    transition: left .28s cubic-bezier(.2,.8,.3,1), top .28s cubic-bezier(.2,.8,.3,1), transform .15s, background .2s;
+    box-shadow:0 6px 14px rgba(232,96,127,0.22);
+  }
+  #yesBtn{
+    left:30%; background:linear-gradient(135deg, var(--pink), var(--pink-deep)); color:#fff;
+  }
+  #yesBtn:hover{ transform:translate(-50%,-50%) scale(1.06); }
+  #yesBtn:active{ transform:translate(-50%,-50%) scale(0.94); }
+  #noBtn{
+    left:72%; background:var(--circle); color:#b96a5a;
+  }
+  .hint{ font-size:0.78rem; color:#c98a7a; opacity:0.85; text-align:center; }
+
+  /* page 2 */
+  .picker-group{ display:flex; flex-direction:column; gap:10px; width:100%; align-items:center; }
+  .field{ width:100%; display:flex; flex-direction:column; gap:4px; }
+  .field label{ font-size:0.72rem; font-weight:700; color:#c98a7a; padding-left:4px; }
+  .field input{
+    font-family:'Quicksand'; font-weight:600; font-size:0.95rem;
+    padding:11px 14px; border-radius:16px; border:2px solid #ffdccb;
+    background:#fffdfb; color:#a8534a; outline:none;
+  }
+  .field input:focus{ border-color:var(--pink); }
+
+  /* page 3 */
+  .activity-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:9px; width:100%; }
+  .activity-chip{
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+    padding:12px 4px; border-radius:18px; border:2px solid #ffdccb;
+    background:#fffdfb; cursor:pointer; transition:transform .15s, background .2s, border-color .2s;
+    font-family:'Quicksand'; font-weight:600; font-size:0.72rem; color:#a8534a;
+  }
+  .activity-chip .emj{ font-size:1.5rem; }
+  .activity-chip:hover{ transform:translateY(-2px); }
+  .activity-chip.selected{
+    background:var(--circle-active); border-color:var(--pink-deep); color:#7a2f3c;
+    transform:scale(1.04);
+  }
+
+  /* shared primary button */
+  .primary-btn{
+    margin-top:4px; border:none; border-radius:999px; padding:12px 30px;
+    font-family:'Quicksand'; font-weight:700; font-size:0.95rem; color:#fff;
+    background:linear-gradient(135deg, var(--pink), var(--pink-deep));
+    cursor:pointer; box-shadow:0 6px 14px rgba(232,96,127,0.25);
+    transition:opacity .2s, transform .15s;
+  }
+  .primary-btn:disabled{ opacity:0.4; cursor:not-allowed; }
+  .primary-btn:not(:disabled):hover{ transform:translateY(-2px); }
+  .primary-btn:not(:disabled):active{ transform:scale(0.96); }
+
+  /* page 4 */
+  .celebrate{ font-size:2.6rem; margin-top:2px; }
+  .final-msg{
+    font-family:'Caveat', cursive; font-weight:700; color:var(--pink-deep);
+    font-size:clamp(1.5rem, 6.2vw, 1.9rem); text-align:center; line-height:1.25; margin:0;
+  }
+  .final-sub{
+    font-size:0.8rem; color:#c98a7a; text-align:center;
+  }
+
+  .heart{
+    position:absolute; pointer-events:none; z-index:5;
+    animation:floatUp 1.2s ease-out forwards;
+  }
+  @keyframes floatUp{
+    0%{ transform:translate(0,0) scale(0.6); opacity:0; }
+    15%{ opacity:1; }
+    100%{ transform:translate(var(--dx), -100px) scale(1.1); opacity:0; }
+  }
+  .sparkle-fall{
+    position:absolute; top:-20px; pointer-events:none; z-index:4;
+    animation:fallDown linear forwards;
+  }
+  @keyframes fallDown{
+    0%{ transform:translateY(0) rotate(0deg); opacity:0; }
+    10%{ opacity:1; }
+    100%{ transform:translateY(420px) rotate(200deg); opacity:0; }
+  }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <div class="card" id="card">
+      <button class="back" id="backBtn">‹ back</button>
+      <div class="dots" id="dots">
+        <div class="dot active"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      </div>
+
+      <!-- PAGE 1 -->
+      <div class="page active" id="page1">
+        <h1>Will you go on a date<br>with me? 🥺💕</h1>
+        <div class="btn-row">
+          <button class="choice-btn" id="yesBtn">Yes 💛</button>
+          <button class="choice-btn" id="noBtn">No</button>
+        </div>
+        <div class="hint">psst.. there's only one right answer 😏</div>
+      </div>
+
+      <!-- PAGE 2 -->
+      <div class="page" id="page2">
+        <h1>So, when do you<br>feel like? 💫</h1>
+        <div class="sub">pick a date and time</div>
+        <div class="picker-group">
+          <div class="field">
+            <label for="dateInput">date</label>
+            <input type="date" id="dateInput">
+          </div>
+          <div class="field">
+            <label for="timeInput">time</label>
+            <input type="time" id="timeInput">
+          </div>
+        </div>
+        <button class="primary-btn" id="toPage3" disabled>Next 🍑</button>
+      </div>
+
+      <!-- PAGE 3 -->
+      <div class="page" id="page3">
+        <h1>What should we<br>do? 👀</h1>
+        <div class="activity-grid" id="activityGrid">
+          <div class="activity-chip" data-key="movie" data-label="Movie"><span class="emj">🎬</span>Movie</div>
+          <div class="activity-chip" data-key="dinner" data-label="Dinner"><span class="emj">🍝</span>Dinner</div>
+          <div class="activity-chip" data-key="walk" data-label="Walk"><span class="emj">🚶‍♀️</span>Walk</div>
+          <div class="activity-chip" data-key="coffee" data-label="Coffee"><span class="emj">☕</span>Coffee</div>
+          <div class="activity-chip" data-key="drinks" data-label="Drinks"><span class="emj">🍸</span>Drinks</div>
+          <div class="activity-chip" data-key="game" data-label="Game"><span class="emj">🎮</span>Game</div>
+        </div>
+        <button class="primary-btn" id="toPage4" disabled>Confirm 💕</button>
+      </div>
+
+      <!-- PAGE 4 -->
+      <div class="page" id="page4">
+        <div class="celebrate">🎉💕✨</div>
+        <p class="final-msg" id="finalMsg">Yeah, it's a date!</p>
+        <div class="final-sub" id="finalSub"></div>
+      </div>
+
+    </div>
+  </div>
+
+<script>
+  const pages = ['page1','page2','page3','page4'];
+  let current = 0;
+  const dots = document.querySelectorAll('.dot');
+  const backBtn = document.getElementById('backBtn');
+  const card = document.getElementById('card');
+
+  function goTo(idx){
+    document.getElementById(pages[current]).classList.remove('active');
+    current = idx;
+    document.getElementById(pages[current]).classList.add('active');
+    dots.forEach((d,i)=> d.classList.toggle('active', i<=current));
+    backBtn.classList.toggle('show', current > 0 && current < 3);
+    if(current === 3){ celebrate(); startConfetti(); }
+    else { stopConfetti(); }
+  }
+
+  backBtn.addEventListener('click', ()=>{
+    if(current > 0) goTo(current-1);
+  });
+
+  /* ---------- PAGE 1: yes / dodging no ---------- */
+  const yesBtn = document.getElementById('yesBtn');
+  const noBtn = document.getElementById('noBtn');
+  const noTexts = ["No", "are you sure? 🥹", "really sure? 🥺", "you can't catch me 😜", "yes is right there 👉", "come on... 💕"];
+  let noIdx = 0;
+  const btnRow = document.querySelector('.btn-row');
+
+  function dodge(){
+    noIdx = (noIdx + 1) % noTexts.length;
+    if(noIdx === 0) noIdx = 1;
+    noBtn.textContent = noTexts[noIdx];
+    const rowRect = btnRow.getBoundingClientRect();
+    const btnRect = noBtn.getBoundingClientRect();
+    const padX = (btnRect.width/2)/rowRect.width*100 + 4;
+    const padY = (btnRect.height/2)/rowRect.height*100 + 6;
+    const newLeft = Math.random()*(100-2*padX) + padX;
+    const newTop = Math.random()*(100-2*padY) + padY;
+    noBtn.style.left = newLeft + '%';
+    noBtn.style.top = newTop + '%';
+    noBtn.style.transform = `translate(-50%,-50%) rotate(${(Math.random()*16-8).toFixed(1)}deg)`;
+  }
+  noBtn.addEventListener('mouseenter', dodge);
+  noBtn.addEventListener('touchstart', (e)=>{ e.preventDefault(); dodge(); }, {passive:false});
+  noBtn.addEventListener('click', (e)=> e.preventDefault());
+
+  yesBtn.addEventListener('click', ()=> goTo(1));
+
+  /* ---------- PAGE 2: date & time ---------- */
+  const dateInput = document.getElementById('dateInput');
+  const timeInput = document.getElementById('timeInput');
+  const toPage3 = document.getElementById('toPage3');
+  const today = new Date().toISOString().split('T')[0];
+  dateInput.setAttribute('min', today);
+
+  function checkPage2(){
+    toPage3.disabled = !(dateInput.value && timeInput.value);
+  }
+  dateInput.addEventListener('input', checkPage2);
+  timeInput.addEventListener('input', checkPage2);
+  toPage3.addEventListener('click', ()=> goTo(2));
+
+  /* ---------- PAGE 3: activity ---------- */
+  const chips = document.querySelectorAll('.activity-chip');
+  const toPage4 = document.getElementById('toPage4');
+  let chosenActivity = null;
+  chips.forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      chips.forEach(c=>c.classList.remove('selected'));
+      chip.classList.add('selected');
+      chosenActivity = { key:chip.dataset.key, label:chip.dataset.label, emoji:chip.querySelector('.emj').textContent };
+      toPage4.disabled = false;
+    });
+  });
+  toPage4.addEventListener('click', ()=> goTo(3));
+
+  /* ---------- PAGE 4: reveal ---------- */
+  const finalMsg = document.getElementById('finalMsg');
+  const finalSub = document.getElementById('finalSub');
+
+  function formatDay(dateStr){
+    const d = new Date(dateStr + 'T00:00:00');
+    return d.toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric' });
+  }
+  function formatTime(timeStr){
+    const [h,m] = timeStr.split(':').map(Number);
+    const d = new Date(); d.setHours(h,m);
+    return d.toLocaleTimeString(undefined, { hour:'numeric', minute:'2-digit' });
+  }
+
+  function celebrate(){
+    const day = formatDay(dateInput.value);
+    const time = formatTime(timeInput.value);
+    const act = chosenActivity ? `${chosenActivity.label} ${chosenActivity.emoji}` : 'something fun 💕';
+    finalMsg.textContent = "Yeah, it's a date! 💕";
+    finalSub.textContent = `See you ${day} at ${time} for ${act}`;
+    burstHearts();
+  }
+
+  const heartPool = ['💕','💖','💗','💓','✨'];
+  function burstHearts(){
+    const cardRect = card.getBoundingClientRect();
+    const cx = cardRect.width/2, cy = cardRect.height/2 + 20;
+    for(let i=0;i<10;i++){
+      const heart = document.createElement('span');
+      heart.className = 'heart';
+      heart.textContent = heartPool[Math.floor(Math.random()*heartPool.length)];
+      heart.style.left = cx + 'px';
+      heart.style.top = cy + 'px';
+      heart.style.fontSize = (0.9 + Math.random()*0.7) + 'rem';
+      heart.style.setProperty('--dx', (Math.random()*160-80).toFixed(0)+'px');
+      heart.style.animationDelay = (Math.random()*0.3) + 's';
+      card.appendChild(heart);
+      setTimeout(()=> heart.remove(), 1600);
+    }
+  }
+
+  let confettiTimer = null;
+  function startConfetti(){
+    if(confettiTimer) return;
+    confettiTimer = setInterval(()=>{
+      if(current !== 3) return;
+      const s = document.createElement('span');
+      s.className = 'sparkle-fall';
+      s.textContent = heartPool[Math.floor(Math.random()*heartPool.length)];
+      s.style.left = (Math.random()*90 + 5) + '%';
+      s.style.fontSize = (0.7 + Math.random()*0.6) + 'rem';
+      s.style.animationDuration = (1.8 + Math.random()*1.2) + 's';
+      card.appendChild(s);
+      setTimeout(()=> s.remove(), 3200);
+    }, 350);
+  }
+  function stopConfetti(){
+    if(confettiTimer){ clearInterval(confettiTimer); confettiTimer = null; }
+  }
+</script>
+</body>
+</html>
